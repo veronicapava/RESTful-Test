@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.header;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -119,6 +120,42 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$.description", is("This is my widget")))
                 .andExpect(jsonPath("$.version", is(1)));
     }
+
+
+    //PUT. Modificacion de elemento que se encuentra en la base de datos
+    @Test
+    @DisplayName("PUT /rest/widget/1")
+    void testUpdateWidgetById() throws Exception {
+        // Setup our mocked service
+        Widget widgetToPut = new Widget("New Widget", "This is my widget");
+        Widget widgetToReturnFindBy = new Widget(1L, "New Widget", "This is my widget", 2);
+        Widget widgetToReturnSave = new Widget(1L, "New Widget", "This is my widget", 3);
+
+        doReturn(Optional.of(widgetToReturnFindBy)).when(service).findById(1L);
+        doReturn(widgetToReturnSave).when(service).save(any());
+
+        // Execute the POST request
+        mockMvc.perform(put("/rest/widget/{id}", 1l)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 2)
+                        .content(asJsonString(widgetToPut)))
+
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+                // Validate headers
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/1"))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"3\""))
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("New Widget")))
+                .andExpect(jsonPath("$.description", is("This is my widget")))
+                .andExpect(jsonPath("$.version", is(3)));
+    }
+
+
 
 
     static String asJsonString(final Object obj) {
