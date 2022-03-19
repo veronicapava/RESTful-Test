@@ -64,6 +64,20 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$[1].version", is(4)));
     }
 
+    //Obtener Widget por ID
+
+    @Test
+    @DisplayName("GET /rest/widget/1")
+    void testGetWidgetById() throws Exception {
+        // Setup our mocked service
+        Optional<Widget> widget1 = Optional.of(new Widget(1l, "Widget Name", "Description", 1));
+        doReturn(widget1).when(service).findById(1L);
+        // Execute the GET request
+        mockMvc.perform(get("/rest/widget/{id}", 1L))
+                // Validate the response code
+                .andExpect(status().isOk());
+    }
+
 
 
     @Test
