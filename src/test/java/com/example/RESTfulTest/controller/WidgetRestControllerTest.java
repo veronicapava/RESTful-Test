@@ -155,7 +155,24 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$.version", is(3)));
     }
 
+    //PUT para modificar un elemento que no se encuentra en la base de datos (not found)
 
+    @Test
+    @DisplayName("PUT /rest/widget/1 - Not Found")
+    void testUpdateWidgetByIdNotFound() throws Exception {
+        // Setup our mocked service
+        Widget widgetToPut = new Widget("New Widget", "This is my widget");
+        doReturn(Optional.empty()).when(service).findById(1L);
+
+        // Execute the POST request
+        mockMvc.perform(put("/rest/widget/{id}", 1l)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 3)
+                        .content(asJsonString(widgetToPut)))
+
+                // Validate the response code and content type
+                .andExpect(status().isNotFound());
+    }
 
 
     static String asJsonString(final Object obj) {
